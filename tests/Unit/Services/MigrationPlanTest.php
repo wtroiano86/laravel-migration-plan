@@ -2,7 +2,10 @@
 
 declare(strict_types=1);
 
+use Illuminate\Events\Dispatcher;
+use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Schema;
+use Wtroiano\MigrationPlan\Migrations\OrderedMigrator;
 use Wtroiano\MigrationPlan\Services\MigrationPlan;
 use Wtroiano\MigrationPlan\Tests\Support\MigrationPlanTestCase;
 
@@ -128,4 +131,32 @@ it('refuses an irreversible batch before rolling back any of its schema', functi
 
     expect(Schema::hasTable('invoices'))->toBeTrue()
         ->and($this->repository->getRan())->toHaveCount(2);
+});
+
+it('reports registration order separately from dependency execution order', function (): void {
+    expect($this->plan->registeredOwners())->toBe(['example/invoices', 'example/customers']);
+    expect($this->plan->owners())->toBe(['example/customers', 'example/invoices']);
+});
+
+it('excludes a migration from one owner so another can claim and run it once', function (): void {
+    $this->migration('foundation', '2030_01_01_000001_customers', "Schema::create('customers', fn (Blueprint \$table) => \$table->id());");
+    $this->migration('app', '2020_01_01_000001_invoices', "Schema::create('invoices', fn (Blueprint \$table) => \$table->id());");
+    $file = $this->directory.'/app/2020_01_01_000001_invoices.php';
+    $plan = new MigrationPlan;
+    $plan->register('example/customers', [$this->directory.'/foundation', $this->directory.'/app'], excludes: [$file]);
+    $plan->register('example/invoices', [$file], ['example/customers']);
+
+    $migrator = new OrderedMigrator(
+        $this->repository,
+        $this->repository->getConnectionResolver(),
+        new Filesystem,
+        new Dispatcher,
+        $plan,
+    );
+
+    $migrator->run();
+
+    expect($plan->files()['2020_01_01_000001_invoices']['owner'])->toBe('example/invoices');
+    expect($this->repository->getRan())->toBe(['2030_01_01_000001_customers', '2020_01_01_000001_invoices']);
+    expect(Schema::hasTable('invoices'))->toBeTrue();
 });

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Wtroiano\MigrationPlan\Concerns;
 
+use Illuminate\Database\Migrations\Migrator;
 use RuntimeException;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -21,6 +22,6 @@ trait ValidatesMigrationPlan
         throw_if((glob(database_path('schema/*-schema.sql')) ?: []) !== [], RuntimeException::class, 'Schema dumps bypass package migration ownership. Remove the schema dump and run the platform migration plan.');
 
         $this->laravel->make(MigrationPlan::class)->files();
-        $this->laravel->make(\Illuminate\Database\Migrations\Migrator::class)->paths();
+        $this->laravel->make(Migrator::class)->paths();
     }
 }

@@ -12,8 +12,8 @@ use Wtroiano\MigrationPlan\Services\MigrationPlan;
 
 it('exposes one plan while preserving the Laravel migrator until activation', function (): void {
     expect(app()->bound(MigrationPlan::class))->toBeTrue();
-    expect(app(MigrationPlan::class))->toBe(app(MigrationPlan::class));
-    expect(app('migrator'))->toBeInstanceOf(Migrator::class)->not->toBeInstanceOf(OrderedMigrator::class);
+    expect(resolve(MigrationPlan::class))->toBe(resolve(MigrationPlan::class));
+    expect(resolve('migrator'))->toBeInstanceOf(Migrator::class)->not->toBeInstanceOf(OrderedMigrator::class);
 });
 
 it('publishes the activation config to the host application', function (): void {
@@ -62,11 +62,11 @@ PHP);
 
     Config::set('migration-plan.enabled', true);
     app()->register(PackageServiceProvider::class, force: true);
-    app(MigrationPlan::class)->register('example/package', [$directory]);
-    app(MigrationPlan::class)->register('example/application', [$applicationMigrations], ['example/package']);
+    resolve(MigrationPlan::class)->register('example/package', [$directory]);
+    resolve(MigrationPlan::class)->register('example/application', [$applicationMigrations], ['example/package']);
 
     try {
-        expect(app('migrator'))->toBeInstanceOf(OrderedMigrator::class);
+        expect(resolve('migrator'))->toBeInstanceOf(OrderedMigrator::class);
         $this->artisan('migrate', ['--force' => true])->assertSuccessful();
         expect(Schema::hasTable('package_records'))->toBeTrue();
         $this->assertDatabaseHas('migrations', ['migration' => '2026_01_01_000001_create_records']);

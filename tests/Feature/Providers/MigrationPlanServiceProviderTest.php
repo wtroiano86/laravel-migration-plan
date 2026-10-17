@@ -25,6 +25,7 @@ it('uses host registrations and the ordered migrator after explicit provider reg
         $plan->register('example/host', [$this->directory.'/database/migrations']);
     });
     $this->app->register(MigrationPlanServiceProvider::class);
+
     $plan = $this->app->make(MigrationPlan::class);
 
     expect($plan->owners())->toBe(['example/host']);
@@ -36,6 +37,7 @@ it('uses host registrations and the ordered migrator after explicit provider reg
 it('preserves a host-supplied plan when the provider registers', function (): void {
     $plan = new MigrationPlan;
     $plan->register('example/host', [$this->directory.'/database/migrations']);
+
     $this->app->instance(MigrationPlan::class, $plan);
     $this->app->register(MigrationPlanServiceProvider::class);
 
@@ -49,6 +51,6 @@ it('rejects partial migration CLI requests before creating the migration reposit
     $command->setLaravel($this->app);
 
     expect($command)->toBeInstanceOf(MigrateCommand::class);
-    expect(fn () => (new CommandTester($command))->execute(['--path' => 'database/migrations']))->toThrow(RuntimeException::class, 'does not support [--path]');
+    expect(fn (): int => new CommandTester($command)->execute(['--path' => 'database/migrations']))->toThrow(RuntimeException::class, 'does not support [--path]');
     expect($this->app->make('migration.repository')->repositoryExists())->toBeFalse();
 });
