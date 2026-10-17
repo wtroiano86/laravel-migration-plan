@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Wtroiano\MigrationPlan;
+namespace Wtroiano\MigrationPlan\Migrations;
 
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Database\ConnectionResolverInterface;
@@ -11,6 +11,7 @@ use Illuminate\Database\Migrations\Migrator;
 use Illuminate\Filesystem\Filesystem;
 use ReflectionMethod;
 use RuntimeException;
+use Wtroiano\MigrationPlan\Services\MigrationPlan;
 
 class OrderedMigrator extends Migrator
 {

@@ -62,7 +62,7 @@
     "extra": {
         "laravel": {
             "providers": [
-                "Wtroiano\\MigrationPlan\\PackageServiceProvider"
+                "Wtroiano\\MigrationPlan\\Providers\\PackageServiceProvider"
             ]
         }
     }

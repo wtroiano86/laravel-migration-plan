@@ -2,16 +2,17 @@
 
 declare(strict_types=1);
 
-namespace Wtroiano\MigrationPlan;
+namespace Wtroiano\MigrationPlan\Providers;
 
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\ServiceProvider;
+use Wtroiano\MigrationPlan\Services\MigrationPlan;
 
 final class PackageServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        $this->mergeConfigFrom(__DIR__.'/../config/migration-plan.php', 'migration-plan');
+        $this->mergeConfigFrom(__DIR__.'/../../config/migration-plan.php', 'migration-plan');
         $this->app->singletonIf(MigrationPlan::class);
 
         if (Config::get('migration-plan.enabled') === true) {
@@ -22,7 +23,7 @@ final class PackageServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->publishes([
-            __DIR__.'/../config/migration-plan.php' => $this->app->configPath('migration-plan.php'),
+            __DIR__.'/../../config/migration-plan.php' => $this->app->configPath('migration-plan.php'),
         ], 'migration-plan-config');
     }
 }

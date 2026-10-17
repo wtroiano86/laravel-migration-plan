@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Schema;
-use Wtroiano\MigrationPlan\MigrationPlan;
+use Wtroiano\MigrationPlan\Services\MigrationPlan;
 use Wtroiano\MigrationPlan\Tests\Support\MigrationPlanTestCase;
 
 uses(MigrationPlanTestCase::class);

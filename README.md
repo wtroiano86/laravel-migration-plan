@@ -9,16 +9,16 @@ composer require wtroiano/laravel-migration-plan:^0.1
 php artisan vendor:publish --tag=migration-plan-config
 ```
 
-Laravel automatically discovers `Wtroiano\MigrationPlan\PackageServiceProvider`, exposes a singleton `MigrationPlan`, and merges the package configuration. Set `enabled` to `true` in the published `config/migration-plan.php` to use the ordered migrator and commands. Installation leaves this option disabled so it preserves the host's migration setup. Applications that disable discovery can register `PackageServiceProvider` in `bootstrap/providers.php`.
+Laravel automatically discovers `Wtroiano\MigrationPlan\Providers\PackageServiceProvider`, exposes a singleton `MigrationPlan`, and merges the package configuration. Set `enabled` to `true` in the published `config/migration-plan.php` to use the ordered migrator and commands. Installation leaves this option disabled so it preserves the host's migration setup. Applications that disable discovery can register `PackageServiceProvider` in `bootstrap/providers.php`.
 
-Explicitly registering `Wtroiano\MigrationPlan\MigrationPlanServiceProvider` remains supported as an alternative activation mechanism. Helm supplies its own composition provider and does not need to enable the configuration option.
+Explicitly registering `Wtroiano\MigrationPlan\Providers\MigrationPlanServiceProvider` remains supported as an alternative activation mechanism. Helm supplies its own composition provider and does not need to enable the configuration option.
 
 ## Registering migration ownership
 
 Register all package paths in an application service provider before a migration command resolves the plan:
 
 ```php
-use Wtroiano\MigrationPlan\MigrationPlan;
+use Wtroiano\MigrationPlan\Services\MigrationPlan;
 
 $this->app->afterResolving(MigrationPlan::class, function (MigrationPlan $plan): void {
     $plan->register('example/customers', [base_path('packages/example/customers/database/migrations')]);
@@ -31,19 +31,20 @@ Every migration directory, including the application's directory, needs an owner
 
 Use the normal migrate, status, rollback, reset, refresh, and fresh commands. Partial `--path`, `--schema-path`, `--graceful`, and schema dumps are rejected because they bypass the complete plan. A failed migration still follows the database engine's transactional limitations. Keep production migration files immutable; this library does not make destructive rollback safe or coordinate package removal.
 
-`MigrationPlan`, `OrderedMigrator`, and `OrderedMigrationRepository` are extensible for host compatibility adapters. Their core behavior lives in this library. A host that supplies its own provider must bind the library's `MigrationPlan` type to the same plan used by its migrator and commands.
+`Services\MigrationPlan`, `Migrations\OrderedMigrator`, and `Repositories\OrderedMigrationRepository` are extensible for host compatibility adapters. Their core behavior lives in this library. A host that supplies its own provider must bind the library's `Services\MigrationPlan` type to the same plan used by its migrator and commands.
 
 ## Package development
 
 ```text
 config/migration-plan.php   Publishable activation configuration
-src/PackageServiceProvider.php
-                           Laravel discovery, configuration, and plan binding
-src/MigrationPlanServiceProvider.php
-                           Explicit ordered-migration activation
-src/Commands/              Laravel migration command integrations
-tests/Feature/             Testbench provider, publishing, and Artisan tests
-tests/Unit/                Isolated migration ordering and rollback tests
+src/Providers/             Discovery and ordered-migration activation providers
+src/Services/              Migration dependency plan
+src/Migrations/            Ordered Laravel migrator
+src/Repositories/          Ordered migration history repository
+src/Concerns/              Migration command validation trait
+src/Console/Commands/      Laravel migration command integrations
+tests/Feature/Providers/   Testbench provider, publishing, and Artisan tests
+tests/Unit/Services/       Isolated migration ordering and rollback tests
 tests/Support/             Temporary migration and SQLite test harness
 tests/TestCase.php         Orchestra Testbench application
 tests/Pest.php             Pest test bindings

@@ -5,10 +5,10 @@ declare(strict_types=1);
 use Illuminate\Database\Migrations\Migrator;
 use Illuminate\Filesystem\Filesystem;
 use Symfony\Component\Console\Tester\CommandTester;
-use Wtroiano\MigrationPlan\Commands\MigrateCommand;
-use Wtroiano\MigrationPlan\MigrationPlan;
-use Wtroiano\MigrationPlan\MigrationPlanServiceProvider;
-use Wtroiano\MigrationPlan\OrderedMigrator;
+use Wtroiano\MigrationPlan\Console\Commands\MigrateCommand;
+use Wtroiano\MigrationPlan\Migrations\OrderedMigrator;
+use Wtroiano\MigrationPlan\Providers\MigrationPlanServiceProvider;
+use Wtroiano\MigrationPlan\Services\MigrationPlan;
 
 beforeEach(function (): void {
     $this->directory = sys_get_temp_dir().'/migration-plan-provider-'.bin2hex(random_bytes(8));

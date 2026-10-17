@@ -2,11 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Wtroiano\MigrationPlan;
+namespace Wtroiano\MigrationPlan\Concerns;
 
 use RuntimeException;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Wtroiano\MigrationPlan\Services\MigrationPlan;
 
 trait ValidatesMigrationPlan
 {

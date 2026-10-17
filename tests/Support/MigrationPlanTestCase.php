@@ -10,9 +10,9 @@ use Illuminate\Events\Dispatcher;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Facade;
 use PHPUnit\Framework\TestCase;
-use Wtroiano\MigrationPlan\MigrationPlan;
-use Wtroiano\MigrationPlan\OrderedMigrationRepository;
-use Wtroiano\MigrationPlan\OrderedMigrator;
+use Wtroiano\MigrationPlan\Migrations\OrderedMigrator;
+use Wtroiano\MigrationPlan\Repositories\OrderedMigrationRepository;
+use Wtroiano\MigrationPlan\Services\MigrationPlan;
 
 abstract class MigrationPlanTestCase extends TestCase
 {

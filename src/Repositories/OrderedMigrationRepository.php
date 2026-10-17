@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Wtroiano\MigrationPlan;
+namespace Wtroiano\MigrationPlan\Repositories;
 
 use Illuminate\Database\Migrations\DatabaseMigrationRepository;
 

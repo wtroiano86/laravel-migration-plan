@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Wtroiano\MigrationPlan;
+namespace Wtroiano\MigrationPlan\Services;
 
 use RuntimeException;
 

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Wtroiano\MigrationPlan\Tests;
 
 use Orchestra\Testbench\TestCase as Orchestra;
-use Wtroiano\MigrationPlan\PackageServiceProvider;
+use Wtroiano\MigrationPlan\Providers\PackageServiceProvider;
 
 abstract class TestCase extends Orchestra
 {

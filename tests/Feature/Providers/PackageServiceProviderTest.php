@@ -6,9 +6,9 @@ use Illuminate\Database\Migrations\Migrator;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Schema;
-use Wtroiano\MigrationPlan\MigrationPlan;
-use Wtroiano\MigrationPlan\OrderedMigrator;
-use Wtroiano\MigrationPlan\PackageServiceProvider;
+use Wtroiano\MigrationPlan\Migrations\OrderedMigrator;
+use Wtroiano\MigrationPlan\Providers\PackageServiceProvider;
+use Wtroiano\MigrationPlan\Services\MigrationPlan;
 
 it('exposes one plan while preserving the Laravel migrator until activation', function (): void {
     expect(app()->bound(MigrationPlan::class))->toBeTrue();

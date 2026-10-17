@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Wtroiano\MigrationPlan;
+namespace Wtroiano\MigrationPlan\Providers;
 
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Contracts\Foundation\Application;
@@ -13,6 +13,9 @@ use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\ServiceProvider;
 use RuntimeException;
+use Wtroiano\MigrationPlan\Migrations\OrderedMigrator;
+use Wtroiano\MigrationPlan\Repositories\OrderedMigrationRepository;
+use Wtroiano\MigrationPlan\Services\MigrationPlan;
 
 final class MigrationPlanServiceProvider extends ServiceProvider
 {
@@ -37,7 +40,7 @@ final class MigrationPlanServiceProvider extends ServiceProvider
         foreach (['Migrate', 'Fresh', 'Refresh', 'Rollback', 'Reset', 'Status'] as $command) {
             $this->app->bind(
                 'Illuminate\\Database\\Console\\Migrations\\'.$command.'Command',
-                'Wtroiano\\MigrationPlan\\Commands\\'.$command.'Command',
+                'Wtroiano\\MigrationPlan\\Console\\Commands\\'.$command.'Command',
             );
         }
     }
