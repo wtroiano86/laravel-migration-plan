@@ -1,17 +1,18 @@
 {
+    "$schema": "https://getcomposer.org/schema.json",
     "name": "wtroiano/laravel-migration-plan",
     "description": "Dependency-aware migration ownership, ordering, and rollback for Laravel",
     "type": "library",
     "version": "0.1.0",
     "license": "MIT",
     "require": {
-        "php": "^8.5.0",
         "illuminate/console": "^13.34",
         "illuminate/contracts": "^13.34",
         "illuminate/database": "^13.34",
         "illuminate/events": "^13.34",
         "illuminate/filesystem": "^13.34",
         "illuminate/support": "^13.34",
+        "php": "^8.5.0",
         "symfony/console": "^8.0"
     },
     "autoload": {
@@ -27,9 +28,10 @@
     "require-dev": {
         "laravel/framework": "^13.34.0",
         "laravel/pint": "^1.32.1",
+        "orchestra/testbench": "^11.3",
         "pestphp/pest": "^5.2.1",
-        "phpstan/phpstan": "^2.2.16",
-        "pestphp/pest-plugin-type-coverage": "^5.0.2"
+        "pestphp/pest-plugin-type-coverage": "^5.0.2",
+        "phpstan/phpstan": "^2.2.16"
     },
     "scripts": {
         "test": "@php vendor/bin/pest",
@@ -38,12 +40,30 @@
         "test:types": "@php vendor/bin/phpstan analyse --memory-limit=1G",
         "test:all": "@test",
         "test:coverage": "@test --coverage",
-        "test:type-coverage": "@test --type-coverage --min=100"
+        "test:type-coverage": "@test --type-coverage --min=100",
+        "post-autoload-dump": [
+            "@clear",
+            "@prepare"
+        ],
+        "clear": "@php vendor/bin/testbench package:purge-skeleton --ansi",
+        "prepare": "@php vendor/bin/testbench package:discover --ansi"
     },
     "config": {
         "allow-plugins": {
             "pestphp/pest-plugin": true
         },
         "sort-packages": true
+    },
+    "keywords": [
+        "laravel",
+        "migrations",
+        "dependencies"
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Wtroiano\\MigrationPlan\\PackageServiceProvider"
+            ]
+        }
     }
 }
