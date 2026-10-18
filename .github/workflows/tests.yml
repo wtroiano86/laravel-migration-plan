@@ -1,10 +1,19 @@
 name: Package CI
-on: [push, pull_request, workflow_dispatch]
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+  workflow_call:
 permissions:
   contents: read
 jobs:
   quality:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        dependencies: [lowest, highest]
     steps:
       - uses: actions/checkout@v7
       - uses: shivammathur/setup-php@v2
@@ -14,7 +23,96 @@ jobs:
           coverage: pcov
           ini-values: zend.assertions=1
           tools: composer:v2
-      - run: composer validate --strict --no-check-version
-      - run: composer install --no-interaction --prefer-dist
+      - run: composer validate --strict
+      - name: Install minimum supported dependencies
+        if: matrix.dependencies == 'lowest'
+        run: composer update --prefer-lowest --prefer-stable --no-interaction --prefer-dist
+      - name: Install latest supported dependencies
+        if: matrix.dependencies == 'highest'
+        run: composer update --prefer-stable --no-interaction --prefer-dist
+      - name: Audit latest dependencies
+        if: matrix.dependencies == 'highest'
+        run: composer audit --locked --abandoned=report
+      - name: Require maintained runtime dependencies
+        if: matrix.dependencies == 'highest'
+        run: composer audit --locked --no-dev
       - name: Enforce lint, static analysis, types, and exact line coverage
         run: composer test
+  databases:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        database: [pgsql, mysql]
+    services:
+      postgres:
+        image: ${{ matrix.database == 'pgsql' && 'postgres:16' || '' }}
+        env:
+          POSTGRES_DB: migration_plan_test
+          POSTGRES_USER: migration_plan
+          POSTGRES_PASSWORD: testing
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U migration_plan -d migration_plan_test"
+          --health-interval 10s --health-timeout 5s --health-retries 5
+      mysql:
+        image: ${{ matrix.database == 'mysql' && 'mysql:8.4' || '' }}
+        env:
+          MYSQL_DATABASE: migration_plan_test
+          MYSQL_USER: migration_plan
+          MYSQL_PASSWORD: testing
+          MYSQL_ROOT_PASSWORD: testing
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd "mysqladmin ping -h 127.0.0.1 --silent"
+          --health-interval 10s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          extensions: curl, mbstring, pdo_sqlite, pdo_pgsql, pdo_mysql
+          coverage: none
+          ini-values: zend.assertions=1
+          tools: composer:v2
+      - run: composer update --prefer-stable --no-interaction --prefer-dist
+      - name: Run database integration tests
+        run: composer test:unit -- --testsuite=Integration
+        env:
+          MIGRATION_PLAN_TEST_DATABASE_URL: ${{ matrix.database == 'pgsql' && 'postgres://migration_plan:testing@127.0.0.1:5432/migration_plan_test' || 'mysql://migration_plan:testing@127.0.0.1:3306/migration_plan_test' }}
+  distribution:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          coverage: none
+          tools: composer:v2
+      - run: composer validate --strict
+      - run: mkdir -p tmp
+      - run: composer archive --format=zip --file=laravel-migration-plan --dir=tmp
+      - name: Verify consumer distribution
+        run: |
+          python3 - <<'PY'
+          from zipfile import ZipFile
+
+          required = {
+              'composer.json', 'LICENSE', 'README.md', 'CHANGELOG.md', 'SECURITY.md',
+              'config/migration-plan.php', 'src/Providers/PackageServiceProvider.php',
+              'docs/README.md', 'docs/GETTING_STARTED.md', 'docs/LARAVEL_BOOST.md',
+              'resources/boost/guidelines/core.blade.php',
+              'resources/boost/skills/laravel-migration-plan/SKILL.md',
+          }
+          with ZipFile('tmp/laravel-migration-plan.zip') as archive:
+              names = set(archive.namelist())
+          missing = required - names
+          excluded = {name for name in names if name.startswith((
+              '.git/', '.github/', 'vendor/', 'tests/', 'tmp/', '.phpstan/', '.phpunit.cache/',
+          ))}
+          if missing or excluded:
+              raise SystemExit(f'Invalid distribution: missing={sorted(missing)}, excluded={sorted(excluded)}')
+          print('Consumer documentation, Boost resources, and distribution exclusions verified.')
+          PY

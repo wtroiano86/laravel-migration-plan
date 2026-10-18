@@ -1,0 +1,75 @@
+name: Prepare release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  checks:
+    uses: ./.github/workflows/tests.yml
+
+  draft:
+    needs: checks
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          coverage: none
+          tools: composer:v2
+      - name: Validate tag and extract release notes
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          python3 - <<'PY'
+          import datetime
+          import os
+          import re
+          from pathlib import Path
+
+          tag = os.environ['RELEASE_TAG']
+          if not re.fullmatch(r'v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)', tag):
+              raise SystemExit('Release tags must use vMAJOR.MINOR.PATCH.')
+          version = tag[1:]
+          changelog = Path('CHANGELOG.md').read_text()
+          heading = re.search(rf'^## \[{re.escape(version)}\] - (\d{{4}}-\d{{2}}-\d{{2}})$', changelog, re.MULTILINE)
+          if heading is None:
+              raise SystemExit(f'Add a dated [{version}] section to CHANGELOG.md before tagging.')
+          datetime.date.fromisoformat(heading.group(1))
+          notes = re.split(r'^## ', changelog[heading.end():], maxsplit=1, flags=re.MULTILINE)[0].strip()
+          notes = re.split(r'^\[[^\]]+\]: ', notes, maxsplit=1, flags=re.MULTILINE)[0].strip()
+          if not notes:
+              raise SystemExit('Release notes must not be empty.')
+          Path('tmp').mkdir(exist_ok=True)
+          Path('tmp/release-notes.md').write_text(notes + '\n')
+          PY
+      - name: Build release archive
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: composer archive --format=zip --file="laravel-migration-plan-${RELEASE_TAG}" --dir=tmp
+      - name: Calculate archive checksum
+        working-directory: tmp
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: sha256sum "laravel-migration-plan-${RELEASE_TAG}.zip" > SHA256SUMS
+      - name: Create draft release for review
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          gh release create "$RELEASE_TAG" \
+            "tmp/laravel-migration-plan-${RELEASE_TAG}.zip" tmp/SHA256SUMS \
+            --verify-tag --draft --title "$RELEASE_TAG" --notes-file tmp/release-notes.md

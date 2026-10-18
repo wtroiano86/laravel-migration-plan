@@ -6,6 +6,8 @@ namespace Wtroiano\MigrationPlan\Providers;
 
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\ServiceProvider;
+use Wtroiano\MigrationPlan\Console\Commands\CheckCommand;
+use Wtroiano\MigrationPlan\Console\Commands\ShowCommand;
 use Wtroiano\MigrationPlan\Services\MigrationPlan;
 
 final class PackageServiceProvider extends ServiceProvider
@@ -22,6 +24,8 @@ final class PackageServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        $this->commands([CheckCommand::class, ShowCommand::class]);
+
         $this->publishes([
             __DIR__.'/../../config/migration-plan.php' => $this->app->configPath('migration-plan.php'),
         ], 'migration-plan-config');

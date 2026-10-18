@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Report a security vulnerability privately
+    url: https://github.com/wtroiano86/laravel-migration-plan/security/policy
+    about: Email opensource.troiano86@pm.me using the security policy. Do not disclose vulnerabilities in public issues.
+  - name: Package documentation
+    url: https://github.com/wtroiano86/laravel-migration-plan/blob/HEAD/docs/README.md
+    about: Installation, ownership recipes, operations, and Laravel Boost integration.

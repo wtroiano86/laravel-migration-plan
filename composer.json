@@ -3,16 +3,29 @@
     "name": "wtroiano/laravel-migration-plan",
     "description": "Dependency-aware migration ownership, ordering, and rollback for Laravel",
     "type": "library",
-    "version": "0.1.0",
+    "homepage": "https://github.com/wtroiano86/laravel-migration-plan",
     "license": "MIT",
+    "authors": [
+        {
+            "name": "William Troiano",
+            "homepage": "https://github.com/wtroiano86"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/wtroiano86/laravel-migration-plan/issues",
+        "source": "https://github.com/wtroiano86/laravel-migration-plan",
+        "docs": "https://github.com/wtroiano86/laravel-migration-plan/blob/HEAD/docs/README.md",
+        "security": "https://github.com/wtroiano86/laravel-migration-plan/security/policy"
+    },
     "require": {
+        "php": "^8.5.0",
         "illuminate/console": "^13.34",
         "illuminate/contracts": "^13.34",
         "illuminate/database": "^13.34",
         "illuminate/events": "^13.34",
         "illuminate/filesystem": "^13.34",
+        "illuminate/pipeline": "^13.34",
         "illuminate/support": "^13.34",
-        "php": "^8.5.0",
         "symfony/console": "^8.0"
     },
     "autoload": {

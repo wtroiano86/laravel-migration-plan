@@ -10,6 +10,7 @@ use Illuminate\Events\Dispatcher;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Facade;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
 use Wtroiano\MigrationPlan\Migrations\OrderedMigrator;
 use Wtroiano\MigrationPlan\Repositories\OrderedMigrationRepository;
 use Wtroiano\MigrationPlan\Services\MigrationPlan;
@@ -24,16 +25,26 @@ abstract class MigrationPlanTestCase extends TestCase
 
     protected OrderedMigrator $migrator;
 
+    private Manager $capsule;
+
     protected function setUp(): void
     {
         parent::setUp();
-        $this->directory = sys_get_temp_dir().'/helm-migrations-'.bin2hex(random_bytes(8));
+        $this->directory = sys_get_temp_dir().'/migration-plan-'.bin2hex(random_bytes(8));
         mkdir($this->directory);
         mkdir($this->directory.'/foundation');
         mkdir($this->directory.'/app');
         $container = new Container;
         $capsule = new Manager($container);
-        $capsule->addConnection(['driver' => 'sqlite', 'database' => ':memory:', 'foreign_key_constraints' => true]);
+        $this->capsule = $capsule;
+        $capsule->addConnection([
+            'url' => getenv('MIGRATION_PLAN_TEST_DATABASE_URL') ?: null,
+            'driver' => 'sqlite', 'database' => ':memory:', 'foreign_key_constraints' => true,
+        ]);
+        $connection = $capsule->getConnection();
+        throw_if($connection->getDriverName() !== 'sqlite' && $connection->getDatabaseName() !== 'migration_plan_test', RuntimeException::class, 'Integration tests require a dedicated database named migration_plan_test.');
+
+        $connection->getSchemaBuilder()->dropAllTables();
 
         $events = new Dispatcher($container);
         $container->instance('db', $capsule->getDatabaseManager());
@@ -52,6 +63,8 @@ abstract class MigrationPlanTestCase extends TestCase
 
     protected function tearDown(): void
     {
+        $this->capsule->getConnection()->getSchemaBuilder()->dropAllTables();
+        $this->capsule->getDatabaseManager()->disconnect();
         (new Filesystem)->deleteDirectory($this->directory);
         Facade::clearResolvedInstances();
         Facade::setFacadeApplication(null);

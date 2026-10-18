@@ -9,3 +9,10 @@
 /composer.lock export-ignore
 /rector.php export-ignore
 /tmp export-ignore
+/vendor export-ignore
+/.phpunit.cache export-ignore
+/.phpunit.result.cache export-ignore
+/.phpstan export-ignore
+/.php-cs-fixer.cache export-ignore
+/composer.local.json export-ignore
+/composer.local.lock export-ignore

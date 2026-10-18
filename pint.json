@@ -59,6 +59,7 @@
         "visibility_required": true
     },
     "exclude": [
+        "tmp",
         "vendor",
         "node_modules",
         "workbench/vendor",
@@ -67,7 +68,6 @@
         "workbench/bootstrap/cache",
         "workbench/bootstrap/ssr",
         "workbench/public/build",
-        "workbench/.helm",
         "resources/stubs"
     ]
 }
